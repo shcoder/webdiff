@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OpenQA.Selenium.Remote;
 using webdiff.driver;
@@ -37,15 +38,17 @@ namespace webdiff
         private const string ImgRelativePath = "img";
 
         private readonly Session session;
+        private readonly ILogger<Processor> log;
         private DateTime Started;
         private string ResultsPath;
         private string ResultsImgPath;
         private Driver[] drivers;
 
 
-        public Processor(Session session)
+        public Processor(Session session, ILogger<Processor> log)
         {
             this.session = session;
+            this.log = log;
         }
 
         public bool Init()
@@ -72,12 +75,12 @@ namespace webdiff
                     {
                         driver = Startup.StartNewDriver(session.Settings.Driver, session.Settings.Mobile)
                             .SetWindowSettings(session.Settings.Window);
-                        session.LogError($"Started driver, {driver.Capabilities}");
+                        log.LogError($"Started driver, {driver.Capabilities}");
                         driver.Url = uri.ToString();
                     }
                     catch (Exception e)
                     {
-                        session.LogError($"Failed to start driver: {e.Message}");
+                        log.LogError($"Failed to start driver: {e.Message}");
                     }
 
                     return new Driver(uri, driver);
@@ -106,7 +109,7 @@ namespace webdiff
             }
             catch (Exception e)
             {
-                session.LogError($"Failed to create output directory '{ResultsPath}': {e.Message}");
+                log.LogError($"Failed to create output directory '{ResultsPath}': {e.Message}");
                 session.Error = Error.CestLaVie;
                 return false;
             }
@@ -195,7 +198,7 @@ namespace webdiff
             var match = 1.0 - (double)pixels / diff.Width / diff.Height;
 
             WriteResult(areSame, areSame ? "Same: " : "Diff: ", relative);
-            WriteInfo($"      Match {match:P1} ({pixels} / {diff.Width * diff.Height} pixels)");
+            log.LogInformation($"      Match {match:P1} ({pixels} / {diff.Width * diff.Height} pixels)");
 
             string leftName = null, rightName = null, diffName = null;
 
@@ -257,9 +260,14 @@ namespace webdiff
             return areSame;
         }
 
-        private void WriteResult(bool success, string prefix, string text = null) => session.LogResult(success, prefix, text);
-
-        private void WriteInfo(string info) => session.LogInfo(info);
+        private void WriteResult(bool success, string prefix, string text = null)
+        {
+            var message = string.Concat(prefix, text);
+            if (success)
+                log.LogInformation(message);
+            else 
+                log.LogWarning(message);
+        }
 
         private const string HtmlReportFilename = "index.html";
         private const string JsRenderFunctionName = "render";

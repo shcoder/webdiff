@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using NDesk.Options;
 using OpenQA.Selenium;
 using webdiff.utils;
@@ -18,8 +19,11 @@ namespace webdiff
 
     internal class Session
     {
-        public Session()
+        private readonly ILogger<Session> log;
+
+        public Session(ILogger<Session> log)
         {
+            this.log = log;
             Output = ".";
             Profile = "profile.toml";
             Template = "template.html";
@@ -60,21 +64,21 @@ namespace webdiff
             }
             catch (OptionException e)
             {
-                LogError($"Option '{e.OptionName}' value is invalid: {e.Message}");
+                log.LogError($"Option '{e.OptionName}' value is invalid: {e.Message}");
                 Error = Error.InvalidArgs;
                 return this;
             }
 
             if (!PathHelper.FileExistsWithOptionalExt(ref Profile, ".toml"))
             {
-                LogError($"Profile '{Profile}' not found");
+                log.LogError($"Profile '{Profile}' not found");
                 Error = Error.InvalidArgs;
                 return this;
             }
 
             if (!PathHelper.FileExistsWithOptionalExt(ref Template, ".html"))
             {
-                LogError($"Template '{Template}' not found");
+                log.LogError($"Template '{Template}' not found");
                 Error = Error.InvalidArgs;
                 return this;
             }
@@ -85,7 +89,7 @@ namespace webdiff
             }
             catch (Exception e)
             {
-                LogError($"Failed to read profile '{Profile}': {e.Message}");
+                log.LogError($"Failed to read profile '{Profile}': {e.Message}");
                 Error = Error.InvalidArgs;
                 return this;
             }
@@ -100,7 +104,7 @@ namespace webdiff
             }
             catch (Exception e)
             {
-                LogError(e.Message);
+                log.LogError(e.Message);
                 Error = Error.InvalidArgs;
                 return this;
             }
@@ -108,7 +112,7 @@ namespace webdiff
             Input = free?.Skip(2).FirstOrDefault();
             if (Input != null && !File.Exists(Input.RelativeToBaseDirectory()))
             {
-                LogError("Input file with URLs not found");
+                log.LogError("Input file with URLs not found");
                 Error = Error.InvalidArgs;
             }
 
@@ -131,21 +135,11 @@ namespace webdiff
             }
             catch (Exception e)
             {
-                LogError($"Failed to parse Cookies file: {e.Message}");
+                log.LogError($"Failed to parse Cookies file: {e.Message}");
                 Error = Error.InvalidArgs;
             }
 
             return Cookies;
-        }
-
-        public void LogError(string message)
-        {
-            lock (Console.Error)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(message);
-                Console.ResetColor();
-            }
         }
 
         public void LogResult(bool success, string prefix, string text = null)
@@ -159,15 +153,6 @@ namespace webdiff
             }
         }
 
-        public void LogInfo(string info)
-        {
-            lock (Console.Out)
-            {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                Console.WriteLine(info);
-                Console.ResetColor();
-            }
-        }
         private static void PrintUsageInfo(OptionSet options)
         {
             Console.WriteLine("Usage: webdiff [OPTIONS] URL1 URL2 [FILE]");
