@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "webdiff": {
+      "commandName": "Project",
+      "commandLineArgs": "https://focus.kontur.ru/ https://test-focus12.kontur.ru/sng-release/ pages.txt"
+    }
+  }
+}

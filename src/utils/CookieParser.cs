@@ -7,7 +7,28 @@ using OpenQA.Selenium;
 namespace webdiff.utils
 {
 	internal static class CookieParser
-	{
+    {
+        private static Type type;
+        private static ConstructorInfo ctor;
+        private static MethodInfo method;
+
+        static CookieParser()
+        {
+            type = typeof(System.Net.Cookie).Assembly.GetType(CookieParserTypeName);
+            ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault();
+            method = type.GetMethod("Get", BindingFlags.NonPublic | BindingFlags.Instance);
+		}
+
+        private static void Check()
+        {
+            if (type == null)
+                throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' not found");
+            if (ctor == null)
+                throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' has no .ctor(string)");
+            if (method == null)
+                throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' has no method Get()");
+		}
+
 		public static Cookie[] Parse(string filepath)
 		{
 			return File.ReadLines(filepath)
@@ -23,16 +44,8 @@ namespace webdiff.utils
 
 		private static System.Net.Cookie ParseCookie(string cookie)
 		{
-			var type = typeof(System.Net.Cookie).Assembly.GetType(CookieParserTypeName);
-			if(type == null)
-				throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' not found");
-			var ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault();
-			if(ctor == null)
-				throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' has no .ctor(string)");
+			Check();
 			var obj = ctor.Invoke(new object[] {cookie});
-			var method = type.GetMethod("Get", BindingFlags.NonPublic | BindingFlags.Instance);
-			if(method == null)
-				throw new Exception($"Invalid runtime: type '{CookieParserTypeName}' has no method Get()");
 			return (System.Net.Cookie)method.Invoke(obj, null);
 		}
 

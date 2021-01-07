@@ -69,8 +69,8 @@ namespace webdiff.driver
 					options.EnableMobileEmulation(deviceSettings);
 				}
 			}
-			return new ChromeDriver(options);
-		}
+            return new ChromeDriver(options);
+        }
 
 		private static RemoteWebDriver StartFirefoxDriver(DriverSettings settings)
 		{

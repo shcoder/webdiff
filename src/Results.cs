@@ -10,7 +10,7 @@ namespace webdiff
 	[JsonObject(MemberSerialization.OptIn)]
 	internal class Results
 	{
-		[JsonProperty("started")]      public DateTime Started;
+		[JsonProperty("Started")]      public DateTime Started;
 		[JsonProperty("ended")]        public DateTime Ended;
 		[JsonProperty("elapsed")]      public TimeSpan Elapsed;
 
