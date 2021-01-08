@@ -53,7 +53,7 @@ namespace webdiff.driver
 			if(settings.Extensions != null)
 				options.AddExtensions(settings.Extensions.Select(ext => ext.RelativeToBaseDirectory()));
 			settings.ProfilePrefs?.ForEach(pref => options.AddUserProfilePreference(pref.Key, pref.Value));
-			if(mobile != null && mobile.Enable)
+            if(mobile != null && mobile.Enable)
 			{
 				if(!string.IsNullOrEmpty(mobile.DeviceName))
 					options.EnableMobileEmulation(mobile.DeviceName);

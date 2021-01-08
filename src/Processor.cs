@@ -75,7 +75,7 @@ namespace webdiff
                     {
                         driver = Startup.StartNewDriver(session.Settings.Driver, session.Settings.Mobile)
                             .SetWindowSettings(session.Settings.Window);
-                        log.LogError($"Started driver, {driver.Capabilities}");
+                        log.LogInformation($"Started driver");// , {driver.Capabilities}
                         driver.Url = uri.ToString();
                     }
                     catch (Exception e)

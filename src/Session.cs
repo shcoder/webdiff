@@ -142,17 +142,6 @@ namespace webdiff
             return Cookies;
         }
 
-        public void LogResult(bool success, string prefix, string text = null)
-        {
-            lock (Console.Out)
-            {
-                Console.ForegroundColor = success ? ConsoleColor.Green : ConsoleColor.Red;
-                Console.Write(prefix);
-                Console.ResetColor();
-                Console.WriteLine(text);
-            }
-        }
-
         private static void PrintUsageInfo(OptionSet options)
         {
             Console.WriteLine("Usage: webdiff [OPTIONS] URL1 URL2 [FILE]");

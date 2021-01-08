@@ -28,13 +28,12 @@ namespace webdiff
     {
         private async static Task<int> Main(string[] args)
         {
-            var host = new HostBuilder()
+            var host = Host.CreateDefaultBuilder(args)
                 .ConfigureHostConfiguration(configHost =>
                 {
                     configHost.SetBasePath(Directory.GetCurrentDirectory());
                     //configHost.AddJsonFile(_hostsettings, optional: true);
                     //configHost.AddEnvironmentVariables(prefix: _prefix);
-                    configHost.AddCommandLine(args);
                 })
                 .ConfigureAppConfiguration((hostContext, configApp) =>
                 {
@@ -44,7 +43,6 @@ namespace webdiff
                         $"appsettings.{hostContext.HostingEnvironment.EnvironmentName}.json",
                         optional: true);
                     //configApp.AddEnvironmentVariables(prefix: _prefix);
-                    configApp.AddCommandLine(args);
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
@@ -52,10 +50,26 @@ namespace webdiff
                         .AddLogging()
                         .AddScoped<Session>()
                         .AddScoped<Processor>()
-                    //services.Configure<Application>(hostContext.Configuration.GetSection("application"));
+                        //services.Configure<Application>(hostContext.Configuration.GetSection("application"));
                         .AddHostedService<ProgramService>();
                 })
-                .ConfigureLogging((hostContext, configLogging) => { configLogging.AddConsole(); })
+                .ConfigureLogging((hostContext, configLogging) =>
+                {
+                    configLogging
+                        .SetMinimumLevel(LogLevel.Information)
+                        /*.AddFile(o =>
+                        {
+                            o.RootPath = AppContext.BaseDirectory;
+                            o.Files = new LogFileOptions[]
+                            {
+                                new LogFileOptions() {Path = "test.log"}
+                            };
+                        })*/
+                        .AddConsole()
+                        .AddInMemory()
+                        ;
+                })
+                //.ConfigureWebHostDefaults()
                 .UseConsoleLifetime()
                 .Build();
 
@@ -64,14 +78,16 @@ namespace webdiff
         }
     }
 
-    internal class ProgramService: IHostedService
+    internal class ProgramService : IHostedService
     {
         protected readonly IServiceProvider provider;
+        private readonly ILogger<ProgramService> log;
         public static int Result;
 
-        public ProgramService(IServiceProvider provider)
+        public ProgramService(IServiceProvider provider, ILogger<ProgramService> log)
         {
             this.provider = provider;
+            this.log = log;
         }
 
         private int Main()
@@ -94,7 +110,7 @@ namespace webdiff
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                log.LogError($"Error: {e.GetType().FullName} - {e.Message}");
                 return (int) Error.CestLaVie;
             }
 
