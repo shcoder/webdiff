@@ -73,7 +73,7 @@ namespace webdiff
                     RemoteWebDriver driver = null;
                     try
                     {
-                        driver = Startup.StartNewDriver(session.Settings.Driver, session.Settings.Mobile)
+                        driver = webdiff.driver.Startup.StartNewDriver(session.Settings.Driver, session.Settings.Mobile)
                             .SetWindowSettings(session.Settings.Window);
                         log.LogInformation($"Started driver");// , {driver.Capabilities}
                         driver.Url = uri.ToString();

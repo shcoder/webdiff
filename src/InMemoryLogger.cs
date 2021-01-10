@@ -76,7 +76,7 @@ namespace webdiff
         }
     }
 
-    internal record LogRecord
+    public record LogRecord
     {
         public DateTime Tms;
         public LogLevel Level;
